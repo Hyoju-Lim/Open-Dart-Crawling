@@ -25,7 +25,6 @@ import xml.etree.ElementTree as ET
 import OpenDartReader
 from bs4 import BeautifulSoup 
 
-# -------
 
 # ### 1. 기업개황
 # - stock code가 있는 상장기업의 기업 개황 데이터 불러오기
@@ -50,14 +49,12 @@ tree = ET.parse('corp_num/CORPCODE.xml')
 
 # get root node
 root = tree.getroot()  
-# -
 
 # 결과 확인 
 print(root[0][0].tag)
 print(root[0][2].tag)
 print(root[956][1].text)
 
-# +
 # 상장된 기업의 corp_code만 담는 list
 listed_code_list = []
 
@@ -70,7 +67,6 @@ for x in range(len(root)):
 len(listed_code_list)
 
 
-# +
 ### 기업개황 불러오는 함수
 
 def load_data(corp_code):
@@ -85,7 +81,7 @@ def load_data(corp_code):
     return company_data
 
 
-# +
+
 # 반복문 통해 상장된 회사의 기업개황 정보 수집
 
 # 진행상황 표시 모듈
@@ -97,13 +93,12 @@ for corp_code in tqdm_notebook(listed_code_list):
     listed_comp_dict = load_data(corp_code)
     listed_comp_info_list.append(listed_comp_dict)
 
-# +
+
 # 상장기업 기업개황 df 변환 및 excel 추출
 
 ## 상장기업 기업개황 df로 변환
 listed_comp_info = pd.DataFrame.from_dict(listed_comp_info_list)
 listed_comp_info.head()
-# -
 
 ## 상장기업 기업개황 excel로 저장
 listed_comp_info.to_excel("220419_상장기업_3431개_기업개황_eng_columns.xlsx")
@@ -116,13 +111,12 @@ listed_comp_info.columns = ['에러 및 정보코드', '에러 및 정보 메시
 # 한글컬럼명 엑셀 저장
 listed_comp_info.to_excel("220419_상장기업_3431개_기업개황_kor_columns.xlsx")
 
-# ---------
 
 # ### 1-1. 기업개황 전처리
 # - corp_code : 8자리
 # - stock_code : 6자리 로 변경 필요
 
-# +
+
 # ==== [전처리] =========
 # Dart api로 추출한 상장회사 기업개황 데이터에서
 # (1) corp_code: 8자리, (2) stock_code: 6자리 만들기
@@ -136,15 +130,13 @@ listed_comp_info['stock_code'] = listed_comp_info['stock_code'].apply(lambda x: 
 
 # 전처리 잘 됐는지 확인
 listed_comp_info[['corp_code', 'stock_code']]
-# -
 
-# --------
+
 
 # ### 2. 공시 서류 원본파일 검색 및 사업보고서 추출
 
 # ### (1) 공시자료 검색
 
-# +
 # 공시자료 검색 - 보고서 번호 추출
 url_json = "https://opendart.fss.or.kr/api/list.json"
 api_key
@@ -160,7 +152,7 @@ params = {
 response = requests.get(url_json, params=params)
 data = response.json()
 data
-# -
+
 
 # DataFrame으로 변환
 data_list_hucams = data.get('list')   # list로 만든 후
@@ -171,7 +163,7 @@ df_hucams
 # => 공시서류 원본파일 추출에 사용
 df_hucams[['report_nm', 'rcept_no']]
 
-# +
+
 # ---- 공시서류원본파일 검색 -------
 url = "https://opendart.fss.or.kr/api/document.xml"
 api_key
@@ -194,13 +186,12 @@ if not os.path.isfile(doc_zip_path):
 
 zf = ZipFile(doc_zip_path)
 zf.extractall() # 압축 해제하면 경로에 문서번호.xml 파일 생성됨
-# -
+
 
 zf.filelist
 
 # ### (2) xml 형식의 사업보고서 파싱
 
-# +
 ### xml 파서 이용한 경우
 orgpath = './20210318001017.xml'
 
@@ -209,7 +200,6 @@ with open(orgpath) as fp:
     print(soup.prettify())
     
 fp.close()
-# -
 
 # ### (3) 특정 태그 안의 정보 뽑기 - 연습용
 
@@ -238,9 +228,8 @@ textfile = open("휴켐스_2020사업보고서_텍스트.txt", "w")
 for element in texts:
     textfile.write(element + '\n')
 textfile.close()
-# -
 
-# ----------
+
 
 # ### 3. 재무제표
 # - OpenDartReader 패키지 활용   
@@ -255,7 +244,7 @@ SK_fs_df
 
 SK_fs_df.to_excel('./220302_SK하이닉스 2020 재무제표 전체_opendartreader 이용.xlsx')
 
-# -----------
+
 
 # ### 4. 지분공시
 # - OpenDartReader 패키지 활용
@@ -270,7 +259,7 @@ dart.major_shareholders('000660')  # stock_code로 조회하는 방법
 df_SK_share = dart.major_shareholders('000660')
 df_SK_share.to_excel('./220302_SK하이닉스_대량보유 상황보고_eng.xlsx')
 
-# +
+
 # 대량보유 상황보고 df 한글 컬럼명으로 바꾸기
 df_SK_share.columns = ['접수번호', '접수일자', '고유번호', '회사명', '보고구분',
                       '대표보고자', '보유주식등의 수', '보유주식등의 증감', '보유비율',
@@ -278,14 +267,14 @@ df_SK_share.columns = ['접수번호', '접수일자', '고유번호', '회사�
                       '보고사유']
 
 df_SK_share.to_excel('./220302_SK하이닉스_대량보유 상황보고_kor.xlsx')
-# -
+
 
 # ### (2) 임원 및 주요주주 소유보고
 
 df_SK_majorshare = dart.major_shareholders_exec('SK하이닉스')
 df_SK_majorshare.to_excel('./220302_SK하이닉스_임원및주요주주 소유보고_eng.xlsx')
 
-# +
+
 # 임원 및 주요주주 소유보고 df 한글 컬럼명으로 바꾸기
 df_SK_majorshare.columns = ['접수번호', '접수일자', '고유번호', '회사명', '보고자',
                        '발행 회사 관계 임원(등기여부)', '발행 회사 관계 임원 직위',
